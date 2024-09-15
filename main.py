@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 import sqlite3
 
@@ -39,6 +40,20 @@ def view_orders():
         tree.insert("", tk.END, values=row)
     conn.close()
 
+def close_orders():
+    selected_items = tree.selection()
+    if selected_items:
+        order_id = tree.item(selected_items[0])['values'][0]
+        conn = sqlite3.connect('business_orders.db')
+        cur = conn.cursor()
+        cur.execute("UPDATE orders SET status = 'Закрыт' where id = ?", (order_id,))
+        conn.commit()
+        conn.close()
+        view_orders()
+    else:
+        messagebox.showwarning("Предупреждение", "Выберите заказ для закрытия")
+
+
 
 app = tk.Tk()
 app.title("Система управления заказами")
@@ -55,6 +70,9 @@ order_details_entry.pack()
 
 add_button = ttk.Button(app, text="Добавить заказ", command=add_order)
 add_button.pack()
+
+close_button = ttk.Button(app, text="Закрыть заказ", command=close_orders)
+close_button.pack()
 
 columns = ("ID", "customer_name", "order_details", "status")  # Заголовки столбцов
 tree = ttk.Treeview(app, columns=columns, show="headings")  # Создание таблицы
